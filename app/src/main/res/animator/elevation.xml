@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--<item
+        android:state_enabled="true"
+        android:state_pressed="true">
+        <objectAnimator
+            android:propertyName="translationZ"
+            android:valueType="floatType"
+            android:valueFrom="0dp"
+            android:valueTo="4dp"
+            android:duration="@android:integer/config_mediumAnimTime"/>
+    </item>-->
+    <item
+        android:state_enabled="true"
+        android:state_selected="true">
+        <set>
+            <!--<objectAnimator
+                android:propertyName="translationZ"
+                android:valueType="floatType"
+                android:valueFrom="4dp"
+                android:valueTo="8dp"
+                android:duration="@android:integer/config_mediumAnimTime"/>-->
+
+            <objectAnimator
+                android:propertyName="cardBackgroundColor"
+                android:valueType="colorType"
+                android:valueFrom="@android:color/white"
+                android:valueTo="#BEF8A0"
+                android:duration="@android:integer/config_mediumAnimTime" />
+        </set>
+    </item>
+
+    <item
+        android:state_enabled="true"
+        android:state_selected="false">
+        <set>
+            <!--<objectAnimator
+                android:propertyName="translationZ"
+                android:valueType="floatType"
+                android:valueFrom="4dp"
+                android:valueTo="8dp"
+                android:duration="@android:integer/config_mediumAnimTime"/>-->
+
+            <objectAnimator
+                android:propertyName="cardBackgroundColor"
+                android:valueType="colorType"
+                android:valueFrom="#BEF8A0"
+                android:valueTo="@android:color/white"
+                android:duration="@android:integer/config_mediumAnimTime" />
+        </set>
+    </item>
+    <item
+        android:state_enabled="true">
+        <objectAnimator
+            android:propertyName="translationZ"
+            android:valueType="floatType"
+            android:valueFrom="4dp"
+            android:valueTo="0dp"
+            android:duration="@android:integer/config_mediumAnimTime"/>
+    </item>
+</selector>

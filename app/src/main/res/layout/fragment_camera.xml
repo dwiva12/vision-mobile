@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <xyz.finity.vision.AutoFitTextureView
+        android:id="@+id/camera_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <ImageView
+        android:id="@+id/info"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/camera_shooter"
+        app:layout_constraintBottom_toBottomOf="@id/camera_shooter"
+        android:padding="12dp"
+        android:layout_marginStart="8dp"
+        app:srcCompat="@drawable/ic_fullscreen_24dp"
+        android:tint="@android:color/white"
+        android:background="@drawable/ripple_circular_light"/>
+
+    <xyz.finity.vision.libs.widgets.FlashButton
+        android:id="@+id/flash"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/camera_shooter"
+        app:layout_constraintBottom_toBottomOf="@id/camera_shooter"
+        android:padding="12dp"
+        android:layout_marginEnd="8dp"
+        android:tint="@android:color/white"
+        android:background="@drawable/ripple_circular_light"/>
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.75"/>
+
+    <Button
+        android:id="@+id/camera_shooter"
+        android:layout_width="76dp"
+        android:layout_height="76dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/guideline"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@drawable/camera_shooter"/>
+
+</android.support.constraint.ConstraintLayout>
