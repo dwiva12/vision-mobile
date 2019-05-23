@@ -12,7 +12,13 @@ import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.Query;
+import retrofit2.http.Streaming;
+import retrofit2.http.Url;
+import xyz.finity.vision.libs.models.AnnotatedImage;
+import xyz.finity.vision.libs.models.HomeData;
 import xyz.finity.vision.libs.models.Label;
+import xyz.finity.vision.libs.models.UploadResponse;
 import xyz.finity.vision.libs.models.VisionData;
 
 /**
@@ -30,8 +36,22 @@ public interface VisionService {
             @Part("description") RequestBody description);
 
     @Multipart
-    @POST("mobile_check.php")
-    Call<VisionData> check(
+    @POST("upload.php")
+    Call<UploadResponse> upload(
             @Part MultipartBody.Part filePart,
             @Part("description") RequestBody description);
+
+    @GET("mobile_check.php")
+    Call<VisionData> check(
+            @Query("token") String token
+    );
+
+    @GET("mobile_home.php")
+    Call<HomeData> home(
+            @Query("page") Integer page
+    );
+
+    @GET()
+    @Streaming
+    Call<ResponseBody> downloadFile(@Url String url);
 }

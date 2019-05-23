@@ -8,14 +8,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.os.Build;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.media.ExifInterface;
 import android.support.v4.app.Fragment;
@@ -25,14 +23,9 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.util.Pair;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewOutlineProvider;
 import android.widget.ImageView;
 import android.support.design.widget.TabLayout;
 import android.widget.Toast;
@@ -40,31 +33,30 @@ import android.support.v7.widget.Toolbar;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import xyz.finity.vision.libs.adapters.BlockAdapter;
-import xyz.finity.vision.libs.adapters.LabelAdapter;
-import xyz.finity.vision.libs.adapters.ObjectAdapter;
 import xyz.finity.vision.libs.fragments.LabelFragment;
 import xyz.finity.vision.libs.fragments.OCRFragment;
 import xyz.finity.vision.libs.fragments.ObjectFragment;
 import xyz.finity.vision.libs.fragments.WebFragment;
 import xyz.finity.vision.libs.models.BestGuessLabel;
 import xyz.finity.vision.libs.models.Block;
-import xyz.finity.vision.libs.models.Label;
 import xyz.finity.vision.libs.models.Object;
+import xyz.finity.vision.libs.models.UploadResponse;
 import xyz.finity.vision.libs.models.Vertices;
 import xyz.finity.vision.libs.models.VisionData;
-import xyz.finity.vision.libs.models.Web;
 import xyz.finity.vision.libs.services.RetrofitClientInstance;
 import xyz.finity.vision.libs.services.VisionService;
 import xyz.finity.vision.libs.utils.FileUtils;
@@ -80,11 +72,16 @@ public class ResultActivity extends AppCompatActivity {
     private float defScale;
     File file;
     Uri uri;
+    String token;
     ArrayList<Rect> objectsRect;
     ArrayList<Rect> blocksRect;
 
     public static final int OBJECTS_RECT = 0;
     public static final int BLOCK_RECT = 1;
+
+    public static final int CONTENT_TYPE_PATH = 0;
+    public static final int CONTENT_TYPE_URI = 1;
+    public static final int CONTENT_TYPE_TOKEN = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,14 +138,25 @@ public class ResultActivity extends AppCompatActivity {
             }
         });
 
-        if (getIntent().getIntExtra("contentType", 0) == 0) {
-            final String path = getIntent().getStringExtra("path");
-            file = new File(path);
-        } else {
-            uri = getIntent().getParcelableExtra("uri");
-            file = FileUtils.getFile(this, uri);
+        switch (getIntent().getIntExtra("contentType", 0)) {
+            case 0:
+                final String path = getIntent().getStringExtra("path");
+                file = new File(path);
+                loadFile();
+                break;
+            case 1:
+                uri = getIntent().getParcelableExtra("uri");
+                file = FileUtils.getFile(this, uri);
+                loadFile();
+                break;
+            case 2:
+                token = getIntent().getStringExtra("token");
+                downloadFile(token);
+                break;
         }
+    }
 
+    private void loadFile() {
         bitmap = openBitmapFromFile(this, file);
 
         ExifInterface exif = null;
@@ -174,10 +182,32 @@ public class ResultActivity extends AppCompatActivity {
         drawable = new BitmapDrawable(getResources(), bitmap);
         imageView.setImageDrawable(drawable);
 
-        sendRequest();
+        uploadFile();
     }
 
-    private void sendRequest() {
+    public void downloadFile(String token) {
+        VisionService service = RetrofitClientInstance.getRetrofitInstance()
+                .create(VisionService.class);
+        Call<ResponseBody> call = service.downloadFile("feed/"  + token + ".jpg");
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    InputStream iStream = response.body().byteStream();
+                    new DownloadTask(ResultActivity.this).execute(iStream);
+                } else {
+                    Log.w(ResultActivity.class.getSimpleName(), "download unsuccessful");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(ResultActivity.class.getSimpleName(), "failed to download file");
+            }
+        });
+    }
+
+    private void uploadFile() {
         VisionService service = RetrofitClientInstance.getRetrofitInstance()
                 .create(VisionService.class);
 
@@ -187,7 +217,44 @@ public class ResultActivity extends AppCompatActivity {
         String desc = "description";
         RequestBody description = RequestBody.create(MultipartBody.FORM, desc);
 
-        Call<VisionData> call = service.check(part, description);
+        Call<UploadResponse> call = service.upload(part, description);
+        final Callback<UploadResponse> callback = new Callback<UploadResponse>() {
+            @Override
+            public void onResponse(Call<UploadResponse> call, Response<UploadResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().getSuccess()) {
+                        getAnnotatedImage(String.valueOf(response.body().getToken()));
+                    }
+
+                } else {
+                    Toast.makeText(ResultActivity.this, "upload unsuccessful ", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(final Call<UploadResponse> call, Throwable t) {
+                Toast.makeText(ResultActivity.this, "upload failed ", Toast.LENGTH_SHORT).show();
+                AlertDialog.Builder builder = new AlertDialog.Builder(ResultActivity.this);
+                builder.setMessage("Gagal munggungah file ke API");
+                builder.setPositiveButton("Ulangi", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        uploadFile();
+                    }
+                });
+                builder.setNegativeButton("Batal", null);
+                builder.show();
+                t.printStackTrace();
+            }
+        };
+        call.enqueue(callback);
+    }
+
+    private void getAnnotatedImage(final String token) {
+        VisionService service = RetrofitClientInstance.getRetrofitInstance()
+                .create(VisionService.class);
+
+        Call<VisionData> call = service.check(token);
         final Callback<VisionData> callback = new Callback<VisionData>() {
             @Override
             public void onResponse(Call<VisionData> call, Response<VisionData> response) {
@@ -249,7 +316,7 @@ public class ResultActivity extends AppCompatActivity {
                 builder.setPositiveButton("Ulangi", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        sendRequest();
+                        getAnnotatedImage(token);
                     }
                 });
                 builder.setNegativeButton("Batal", null);
@@ -388,7 +455,7 @@ public class ResultActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int i) {
-                Toast.makeText(ResultActivity.this, "" + i, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(ResultActivity.this, "" + i, Toast.LENGTH_SHORT).show();
                 String title = viewPager.getAdapter().getPageTitle(i).toString();
                 switch (title) {
                     case "Object":
@@ -409,9 +476,6 @@ public class ResultActivity extends AppCompatActivity {
             }
         });
     }
-
-
-
 
     private class SectionsPagerAdapter extends FragmentPagerAdapter {
 
@@ -476,6 +540,51 @@ public class ResultActivity extends AppCompatActivity {
                 default:
                     return null;
             }
+        }
+    }
+
+    public void saveBitmap(Context context, Bitmap bitmap, String filename) {
+        try {
+//            for (int i = 0; i < 100; i++) {
+//                String curfile = filename;
+            FileOutputStream fos = context.openFileOutput(filename, Context.MODE_PRIVATE);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.close();
+//            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        if (bitmap == null) {
+            bitmap = Bitmap.createBitmap(720, 720, Bitmap.Config.ARGB_8888);
+        }
+        this.bitmap = bitmap;
+        setDefaultScale(bitmap.getWidth(), bitmap.getHeight());
+        BitmapDrawable drawable;
+        drawable = new BitmapDrawable(getResources(), bitmap);
+        imageView.setImageDrawable(drawable);
+        getAnnotatedImage(token);
+    }
+
+    private static class DownloadTask extends AsyncTask<InputStream, Void, Bitmap> {
+
+        WeakReference<ResultActivity> resultRef;
+        public DownloadTask(ResultActivity resultActivity) {
+            resultRef = new WeakReference<>(resultActivity);
+        }
+
+        @Override
+        protected Bitmap doInBackground(InputStream... inputStreams) {
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStreams[0]);
+            return bitmap;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            super.onPostExecute(bitmap);
+            resultRef.get().setBitmap(bitmap);
         }
     }
 }
