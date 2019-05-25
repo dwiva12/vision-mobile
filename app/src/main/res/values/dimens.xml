@@ -12,4 +12,5 @@
     <dimen name="verticesSelectedStrokeWidth">10dp</dimen>
     <dimen name="listItemVerticalMargin">6dp</dimen>
     <dimen name="listItemHorizontalMargin">8dp</dimen>
+    <dimen name="dialogHorizontalPadding">16dp</dimen>
 </resources>

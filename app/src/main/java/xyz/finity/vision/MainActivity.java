@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recycler_view);
         boolean isPortrait = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
-        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, isPortrait ? 2 : 3, GridLayoutManager.VERTICAL, false);
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, isPortrait ? 2 : 4, GridLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
 
         RecyclerView.ItemDecoration decoration = new RecyclerView.ItemDecoration() {

@@ -9,4 +9,9 @@
     <color name="verticesSelectedMarker">#02C905</color>
 
     <color name="black_transparent_20">#43000000</color>
+    <color name="displayTextColor">#FAFAFA</color>
+
+    <color name="btnAccentBlue">#1cb2bf</color>
+    <color name="btnAccentRed">#d24643</color>
+    <color name="alertTextColor">#666</color>
 </resources>

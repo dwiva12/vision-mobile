@@ -33,7 +33,7 @@
                 app:layout_collapseMode="pin"
                 app:title="Vision"
                 app:titleTextColor="@android:color/white"
-                app:titleTextAppearance="@style/TabLayoutTextAppearance"
+                app:titleTextAppearance="@style/ToolbarTextAppearance"
                 android:theme="@style/AppTheme"/>
     </android.support.design.widget.AppBarLayout>
 

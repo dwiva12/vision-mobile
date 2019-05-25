@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -43,6 +43,31 @@
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textColorHighlight">?android:textColorPrimary</item>
+    </style>
+
+    <style name="btn" parent="Widget.AppCompat.Button">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item tools:targetApi="21" name="android:stateListAnimator">@null</item>
+    </style>
+
+    <style name="btn.Blue">
+        <item name="android:background">@drawable/bg_btn_blue</item>
+        <item name="android:textColor">@color/btn_blue_text_color</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="btn.Red">
+        <item name="android:background">@drawable/bg_btn_red</item>
+        <item name="android:textColor">@color/btn_red_text_color</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="DialogTitleTextAppearance">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textColor">@color/alertTextColor</item>
     </style>
 
 </resources>

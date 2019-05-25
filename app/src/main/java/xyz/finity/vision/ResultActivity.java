@@ -48,11 +48,13 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import xyz.finity.vision.libs.fragments.LabelFragment;
+import xyz.finity.vision.libs.fragments.MatchingImageFragment;
 import xyz.finity.vision.libs.fragments.OCRFragment;
 import xyz.finity.vision.libs.fragments.ObjectFragment;
 import xyz.finity.vision.libs.fragments.WebFragment;
 import xyz.finity.vision.libs.models.BestGuessLabel;
 import xyz.finity.vision.libs.models.Block;
+import xyz.finity.vision.libs.models.MatchingImage;
 import xyz.finity.vision.libs.models.Object;
 import xyz.finity.vision.libs.models.UploadResponse;
 import xyz.finity.vision.libs.models.Vertices;
@@ -482,7 +484,8 @@ public class ResultActivity extends AppCompatActivity {
         private static final int OBJECT_DETECTION = 0;
         private static final int LABEL_DETECTION = 1;
         private static final int WEB_DETECTION = 2;
-        private static final int TEXT_DETECTION = 3;
+        private static final int MATCHING_IMAGES = 3;
+        private static final int TEXT_DETECTION = 4;
 
         private VisionData visionData;
         private List<Integer> detectionList;
@@ -499,6 +502,7 @@ public class ResultActivity extends AppCompatActivity {
             }
             if (visionData.getWeb() != null) {
                 detectionList.add(WEB_DETECTION);
+                detectionList.add(MATCHING_IMAGES);
             }
             if (visionData.getOcr() != null) {
                 detectionList.add(TEXT_DETECTION);
@@ -514,6 +518,12 @@ public class ResultActivity extends AppCompatActivity {
                     return LabelFragment.newInstance(visionData.getLabels());
                 case WEB_DETECTION:
                     return WebFragment.newInstance(visionData.getWeb().getWebEntities());
+                case MATCHING_IMAGES:
+                    List<MatchingImage> matchingImages = new ArrayList<>();
+                    matchingImages.addAll(visionData.getWeb().getFullMatchingImages());
+                    matchingImages.addAll(visionData.getWeb().getPartialMatchingImages());
+                    matchingImages.addAll(visionData.getWeb().getVisuallySimilarImages());
+                    return MatchingImageFragment.newInstance(matchingImages);
                 case TEXT_DETECTION:
                     return OCRFragment.newInstance(visionData.getOcr().getBlocks());
                 default:
@@ -535,6 +545,8 @@ public class ResultActivity extends AppCompatActivity {
                     return "Label";
                 case WEB_DETECTION:
                     return "Web";
+                case MATCHING_IMAGES:
+                    return "Similar Images";
                 case TEXT_DETECTION:
                     return "Text";
                 default:

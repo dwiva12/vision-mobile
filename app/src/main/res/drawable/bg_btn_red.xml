@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" android:exitFadeDuration="@android:integer/config_shortAnimTime">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/btnAccentRed"/>
+        </shape>
+    </item>
+
+    <item android:state_enabled="true">
+        <shape android:shape="rectangle">
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <padding android:left="16dp" android:right="16dp" android:top="14dp" android:bottom="14dp"/>
+        </shape>
+    </item>
+</selector>
